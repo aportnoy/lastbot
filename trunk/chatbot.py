@@ -1,7 +1,7 @@
 
-
-
+import sys
 import string
+import types
 import pylast
 
 # You have to have your own unique two values for API_KEY and API_SECRET
@@ -29,7 +29,7 @@ song = ["song", "songs","track", "melody", "anthem", "ballad", "chant", "lullaby
 
 album = ["album","albums","cds","cd","record","compact disk", "demo","recording","disk","release", "edition", "lp", "cassette", "tape", "ep", "anthology", "vinyl"]
 
-similar = ["alike","similar","close","same","corresponding","akin"]
+similar = ["similar", "close", "sound", "like", "love", "enjoy", "match", "matching", "akin", "alike" ,"close", "same"]
 
 concert =  ["when","events","where","concert", "concerts","event", "gig","jam", "session", "musical", "recital", "show", "performance","gigs","jams", "sessions", "musicals", "recitals", "shows", "performances"]
 
@@ -40,6 +40,10 @@ popularity = ["top", "popular", "well known", "best" , "popularity", "chart", "b
 info = ["info","tell", "biography", "about","history", "account", "life", "profile" ]
 
 makeList = ["write", "release", "distridute","distributed", "create", "created", "arrange", "arranged","created", "put together", "compose", "made","by","released"]
+
+more = ["more","results","better"]
+
+last = ["this","that","them","they","their","it","him","her","his","hers"]
 
 
 topic = [False, False]
@@ -133,32 +137,31 @@ def isMake(word):
         if word == makeList[i]:
             make = True
 
-def reset():
-    for i in range(len(topic)):
-        topic[i]=False
-    for i in range(len(subTopic)):
-        subTopic[i]= False
+def reset(Class,SubClass):
+    if(Class):
+        for i in range(len(topic)):
+            topic[i]=False
+    if(SubClass):
+        for i in range(len(subTopic)):
+            subTopic[i]= False
     make = False
 
 
-def translateToLastFm (Name,Class,Subclass,By):
+def translateToLastFm (Name,Class,Subclass,By,more):
     try :
-        
+        subTopic[SIMILAR]
         if(By and Class[0] and Class[1]):
             myArtist=network.search_for_artist(Name).get_next_page()
             if(len(myArtist)>0):
                 top=myArtist[0].get_top_albums()
                 if(len(top)>0):
-                    return str(top[0][0])
+                    return str(top[more][0])
         elif((not By) and Class[0] and Class[1]):
             myAlbum=network.search_for_album(Name).get_next_page()
             if(len(myAlbum)>0):
-                return myAlbum[0]
-        
+                return str(myAlbum[more])
         if Class[0] :
             myArtist=network.search_for_artist(Name).get_next_page()[0]
-            #myArtist=network.get_artist(Name)
-            
             if  Subclass[CONCERT]:
                 allmye=myArtist.get_upcoming_events()
                 if(len(allmye)==0):
@@ -166,17 +169,17 @@ def translateToLastFm (Name,Class,Subclass,By):
                 mye=allmye[0]
                 return str(str(myArtist)+" will play at venue#"+str(mye.get_venue().get_id())+" on "+mye.get_start_date()+" for " +str(mye))
             elif Subclass[SIMILAR]:
-                return myArtist.get_similar()
+                return str(myArtist.get_similar()[more][0])
             elif Subclass[SONG]:
                 mysongs=myArtist.get_top_albums()
                 if(len(mysongs)!=0):
-                    return mysongs[0]
+                    return str(mysongs[more])
             elif Subclass[ALBUM]:
                 myalbums=myArtist.get_top_albums()
                 if(len(myalbums)!=0):
-                    return myalbums[0]
+                    return str(myalbums[more])
             elif Subclass[POPULARITY]:
-                return myArtist.get_playcount()
+                return str(myArtist.get_playcount()) + " plays"
             elif Subclass[INFO]:
                 return myArtist.get_bio_summary()
             else :
@@ -186,18 +189,24 @@ def translateToLastFm (Name,Class,Subclass,By):
             #network.get_album(self, artist, title)
             myAlbum=network.search_for_album(Name).get_next_page()[0]
             if Subclass[SONG]:
-               return myAlbum.get_tracks()[0]
+                return str(myAlbum.get_tracks())
             elif Subclass[INFO]:
                 return myAlbum.get_wiki_summary()
                 #get_wiki_content()
             elif Subclass[POPULARITY]:
-                return myAlbum.get_playcount()
+                return str(myAlbum.get_playcount()) + " plays"
                 #get_listener_count()
             else :
                 return myAlbum.get_wiki_summary()
+        if(not Class[1] and not Class[0]):
+            sentence=raw_input("Is this a band or an album?\n");
+            for word in sentence.split():
+                whatTopic(word)
+            return( translateToLastFm (Name,Class,Subclass,By,more))
+                
         return "fail"
-    except ArithmeticError:
-        print "didn't connect"
+    except BaseException:
+        print "no results"
         return "fail"
 #except BaseException :
 #    return "Fail"ArithmeticError
@@ -296,8 +305,8 @@ def lastfm():
     goodbyewords =["bye","later","lates","brb","goodbye"]
     greeted=0;
     greeting=0;
-    
-    
+    wantsmore=0
+    lastreq=False
     
     print "Hello I am a lastfm chatbot"
     while(1==1):
@@ -321,13 +330,13 @@ def lastfm():
                 quotesfilter=re.findall('\"[\s\w\-]*\"',sentence)
         for object in quotesfilter:
             mylist.append(re.sub('\"',"",object))
-        print("quot filter=" + str(mylist))
+        #print("quot filter=" + str(mylist))
         ###
         
         ###Dictionary filter
         filter = re.sub("[\-\"\_\.\,\;\:]*","",sentence)
         filter=textchange(filter)
-        print("Dict filter="+filter)
+        #print("Dict filter="+filter)
         ###
         
         ###uppercase case
@@ -340,7 +349,7 @@ def lastfm():
         temp.extend(re.findall("[A-Z][\S]*\s[A-Z][\S]*\s[A-Z][\S]*", casefilter))
         temp.extend(re.findall("[A-Z][\S]*\s[A-Z][\S]*", casefilter))
         temp.extend(re.findall("[A-Z][\S]*", casefilter))
-        print("Case filter=" + str(temp))
+        #print("Case filter=" + str(temp))
         ####
         
         ###List Combiner
@@ -357,39 +366,70 @@ def lastfm():
         
         #what is user talking about?
         #reset old thoughts
-        reset()
+        temp=wantsmore
+        lastreq=False
         for word in sentence.split():
-            word=word.lower()
-            whatTopic(word)
-            whatSubTopic(word)
-            
-            for term in greetingwords:
+            for term in more:
                 if(term==word):
-                    greeting=1
-            for term in goodbyewords:
+                    wantsmore=wantsmore+1
+            for term in last:
                 if(term==word):
-                    if(greeting==1):
-                        confusion=1
-                    parting=1
+                    lastreq=True
+        if(wantsmore==temp):
+            wantsmore=0
+        if(wantsmore==0 and not lastreq):
+            reset(True,True)
+            for word in sentence.split():
+                word=word.lower()
+                whatTopic(word)
+                whatSubTopic(word)
+                
+                for term in greetingwords:
+                    if(term==word):
+                        greeting=1
+                for term in goodbyewords:
+                    if(term==word):
+                        if(greeting==1):
+                            confusion=1
+                        parting=1
+        if(lastreq and wantsmore==0):
+            reset(False,True)
+            for word in sentence.split():
+                whatSubTopic(word)
         
         
         ###Some Network brains
         for item in quotesfilter:
-            item=re.sub("[^\w\s]*","",item)
-            item=item.strip()
+            if(wantsmore==0 and not lastreq):
+                item=re.sub("[^\w\s]*","",item)
+                item=item.strip()
+                text=item
+            else :
+                text=text
             #print(item)
             #print(topic)
             #print(make)
-            #print(subTopic)
-            info=translateToLastFm(item,topic,subTopic,make)
-            try :
-                info=str(info)
-            except UnicodeEncodeError :
-                info=info
+            #print text,topic,subTopic,make,wantsmore
+            info=translateToLastFm(text,topic,subTopic,make,wantsmore)
+            html=False
+            if(info==types.NoneType):
+                continue
             if(info=="fail"):
                 continue
-            info=re.sub("(\<[\w\s\'\"\:\;\,\.\?\/\=\+\-\_\@\!\#\$\%\^\&\*\(\)]*\>)*","",info)
-            print("\nI have found something pertaining to the entity "+item+"\n\n"+info+"\n")
+            for letter in info :
+                if(letter==">"):
+                    html=False
+                    continue
+                if(html or letter=="<"):
+                    html=True
+                    continue
+                try:
+                    sys.stdout.write(letter)
+                except UnicodeEncodeError :
+                    continue
+            print()
+            #info=re.sub("(\<[\w\s\'\"\:\;\,\.\?\/\=\+\-\_\@\!\#\$\%\^\&\*\(\)]*\>)*","",info)
+            #print("\nI have found something pertaining to the entity "+item+"\n\n"+info+"\n")
             break
         ###
         
