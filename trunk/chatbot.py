@@ -1,4 +1,5 @@
 
+import time
 import sys
 import string
 import types
@@ -23,7 +24,7 @@ import re
 #order in subTopic = [song, info, popularity, concert, similar, album]
 # contains common synoymns of keyword. Feel free to add more. Lower case 
 
-band =  ["who","band","artist","group","singer", "ensemble", "team", "orchestra", "troupe", "musician", "composer", "performer", "creator", "virtuoso",  "vocalist"]
+band =  ["who","band","artist","group","singer", "ensemble", "team", "orchestra", "troupe", "musician", "composer", "performer", "creator", "virtuoso",  "vocalist","wrote"]
 
 song = ["song", "songs","track", "melody", "anthem", "ballad", "chant", "lullaby", "piece","poem", "psalm", "round", "tune", "verse", "title", "air", "aria", "chorus", "hymn", "arrangement", "score", "soundtrack", "theme"]
 
@@ -39,12 +40,17 @@ popularity = ["top", "popular", "well known", "best" , "popularity", "chart", "b
 
 info = ["info","tell", "biography", "about","history", "account", "life", "profile" ]
 
-makeList = ["write", "release", "distridute","distributed", "create", "created", "arrange", "arranged","created", "put together", "compose", "made","by","released"]
+makeList = ["write", "release", "distribute","distributed", "create", "created", "arrange", "arranged","created", "put together", "compose", "made","by","released"]
 
 more = ["more","results","better"]
 
+negAmb = ["no","care","know","whatever","negative","none","not","way","impossible","neither","nor"]
+
 last = ["this","that","them","they","their","it","him","her","his","hers"]
 
+filename=re.sub("[^\w]","",str(time.clock()))+".log"
+file=open(filename,'w+')
+    
 
 topic = [False, False]
 subTopic = [False, False,False,False,False,False,False,False]
@@ -92,50 +98,56 @@ def whatSubTopic(word):
 def isBand(word):
     i = 0
     for i in range(len(band)):
-        if word == band[i]:
+        if word.lower() == band[i]:
             return True
     return False
 
 def isAlbum(word):
     for i in range(len(album)):
-        if word == album[i]:
+        if word.lower() == album[i]:
             return True
     return False
 
 def isSong(word):
     for i in range(len(song)):
-        if word == song[i]:
+        if word.lower() == song[i]:
             return True
     return False
 
 def isInfo(word):
     for i in range(len(info)):
-        if word == info[i]:
+        if word.lower() == info[i]:
             return True
     return False
 
 def isPopularity(word):
     for i in range(len(popularity)):
-        if word == popularity[i]:
+        if word.lower() == popularity[i]:
             return True
     return False
 
 def isConcert(word):
     for i in range(len(concert)):
-        if word == concert[i]:
+        if word.lower() == concert[i]:
             return True
     return False
 
 def isSimilar(word):
     for i in range(len(similar)):
-        if word == similar[i]:
+        if word.lower() == similar[i]:
             return True
     return False
 
 def isMake(word):
     for i in range(len(makeList)):
-        if word == makeList[i]:
+        if word.lower() == makeList[i]:
             make = True
+
+def isNeg(word):
+    for i in range(len(negAmb)):
+        if word.lower() == negAmb[i]:
+            return True
+    return False
 
 def reset(Class,SubClass):
     if(Class):
@@ -199,15 +211,28 @@ def translateToLastFm (Name,Class,Subclass,By,more):
             else :
                 return myAlbum.get_wiki_summary()
         if(not Class[1] and not Class[0]):
+            print str("werfaewfa")
             sentence=raw_input("Is this a band or an album?\n");
+            file.flush()
+            file.write("Is this a band or an album?\n");
+            file.flush()
+            for word in sentence.split():
+                if(isNeg(word)):
+                    file.flush()
+                    file.write("Sorry, I interpreted that information as a name\n")
+                    file.flush()
+                    return("Sorry, I interpreted that information as a name\n")
             for word in sentence.split():
                 whatTopic(word)
+                
             return( translateToLastFm (Name,Class,Subclass,By,more))
                 
         return "fail"
     except BaseException:
         print "no results"
         return "fail"
+    return "fail"
+
 #except BaseException :
 #    return "Fail"ArithmeticError
 # case "Venue" :
@@ -302,16 +327,19 @@ def textchange(string1):
 
 def lastfm():
     greetingwords = ["hello","hi","yo","sup"];
-    goodbyewords =["bye","later","lates","brb","goodbye"]
+    goodbyewords = ["bye","later","lates","brb","goodbye"]
     greeted=0;
     greeting=0;
     wantsmore=0
+    text=""
     lastreq=False
-    
-    print "Hello I am a lastfm chatbot"
+    print ("Hello I am a lastfm chatbot")
+    file.write("Hello I am a lastfm chatbot\n")
+    file.flush()
     while(1==1):
-        sentence=raw_input("");
-        
+        sentence=raw_input("-");
+        file.write("\n"+sentence+"\n")
+        file.flush()
         greeting=0
         confusion=0
         parting=0
@@ -336,6 +364,11 @@ def lastfm():
         ###Dictionary filter
         filter = re.sub("[\-\"\_\.\,\;\:]*","",sentence)
         filter=textchange(filter)
+        if(len(re.findall("\w",filter))>0):
+            filter=[filter]
+        else:
+            filter=[]
+        
         #print("Dict filter="+filter)
         ###
         
@@ -358,7 +391,7 @@ def lastfm():
         else :
             quotesfilter=[quotesfilter]
             quotesfilter.extend(temp)
-        quotesfilter.extend([filter])
+        quotesfilter.extend(filter)
         ###
         
         
@@ -397,6 +430,27 @@ def lastfm():
             for word in sentence.split():
                 whatSubTopic(word)
         
+        if(len(quotesfilter)==0):
+            if(confusion==1):
+                print("Huh? ")
+                file.write("Huh? \n")
+                file.flush()
+            if(parting==1):
+                print("Bye ")
+                file.write("Bye \n")
+                file.flush()
+                break
+            if(greeting==1):
+                if(greeted==0):
+                    print("Hello ")
+                    file.write("Hello \n")
+                    file.flush()
+                else :
+                    if(greeted<4):
+                        print("Hello again ")
+                        file.write("Hello, again \n")
+                        file.flush()
+                greeted=greeted+1
         
         ###Some Network brains
         for item in quotesfilter:
@@ -406,7 +460,7 @@ def lastfm():
                 text=item
             else :
                 text=text
-            #print(item)
+            #print(text)
             #print(topic)
             #print(make)
             #print text,topic,subTopic,make,wantsmore
@@ -415,6 +469,8 @@ def lastfm():
             if(info==types.NoneType):
                 continue
             if(info=="fail"):
+                file.write("fail\n")
+                file.flush()
                 continue
             for letter in info :
                 if(letter==">"):
@@ -425,8 +481,12 @@ def lastfm():
                     continue
                 try:
                     sys.stdout.write(letter)
+                    file.write(letter)
+                    file.flush()
                 except UnicodeEncodeError :
                     continue
+            file.write("\n");
+            file.flush()
             print()
             #info=re.sub("(\<[\w\s\'\"\:\;\,\.\?\/\=\+\-\_\@\!\#\$\%\^\&\*\(\)]*\>)*","",info)
             #print("\nI have found something pertaining to the entity "+item+"\n\n"+info+"\n")
@@ -434,23 +494,8 @@ def lastfm():
         ###
         
         
-        
-        
-        """
-        if(confusion==1):
-            print("Huh? ")
-        if(parting==1):
-            print("Bye ")
-            break
-        if(greeting==1):
-            if(greeted==0):
-                print("Hello, how are you doing? ")
-            else :
-                if(greeted<4):
-                    print("Hello again ")
-            greeted=greeted+1
-        else:
-            print "No response for that input"
-        """
+    file.close()
+    print(filename +" is the log file name")
+    
 
 lastfm()
