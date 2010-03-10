@@ -424,7 +424,7 @@ def lastfm():
         
         
         ###Lastreq case, negates for a threshold
-        print text, lastreq, len(quotesfilter)
+        #print text, lastreq, len(quotesfilter)
         if(lastreq and (len(quotesfilter)<3)):
             quotesfilter.insert(0,text)
         if(lastreq and wantsmore==0):
@@ -454,7 +454,7 @@ def lastfm():
                         file.flush()
                 greeted=greeted+1
         ###Some Network brains
-        print quotesfilter,topic,subTopic,make,wantsmore,lastreq
+        #print quotesfilter,topic,subTopic,make,wantsmore,lastreq
         #print(text)
         #print(topic)
         #print(make)
