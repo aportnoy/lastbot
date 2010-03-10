@@ -211,7 +211,6 @@ def translateToLastFm (Name,Class,Subclass,By,more):
             else :
                 return myAlbum.get_wiki_summary()
         if(not Class[1] and not Class[0]):
-            print str("werfaewfa")
             sentence=raw_input("Is this a band or an album?\n");
             file.flush()
             file.write("Is this a band or an album?\n");
@@ -394,9 +393,6 @@ def lastfm():
         quotesfilter.extend(filter)
         ###
         
-        
-            
-        
         #what is user talking about?
         #reset old thoughts
         temp=wantsmore
@@ -425,11 +421,17 @@ def lastfm():
                         if(greeting==1):
                             confusion=1
                         parting=1
+        
+        
+        ###Lastreq case, negates for a threshold
+        print text, lastreq, len(quotesfilter)
+        if(lastreq and (len(quotesfilter)<3)):
+            quotesfilter.insert(0,text)
         if(lastreq and wantsmore==0):
             reset(False,True)
             for word in sentence.split():
                 whatSubTopic(word)
-        
+        ###
         if(len(quotesfilter)==0):
             if(confusion==1):
                 print("Huh? ")
@@ -451,8 +453,11 @@ def lastfm():
                         file.write("Hello, again \n")
                         file.flush()
                 greeted=greeted+1
-        
         ###Some Network brains
+        print quotesfilter,topic,subTopic,make,wantsmore,lastreq
+        #print(text)
+        #print(topic)
+        #print(make)
         for item in quotesfilter:
             if(wantsmore==0 and not lastreq):
                 item=re.sub("[^\w\s]*","",item)
@@ -460,15 +465,12 @@ def lastfm():
                 text=item
             else :
                 text=text
-            #print(text)
-            #print(topic)
-            #print(make)
-            #print text,topic,subTopic,make,wantsmore
             info=translateToLastFm(text,topic,subTopic,make,wantsmore)
             html=False
             if(info==types.NoneType):
                 continue
             if(info=="fail"):
+                print "fail"
                 file.write("fail\n")
                 file.flush()
                 continue
