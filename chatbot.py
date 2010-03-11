@@ -425,7 +425,7 @@ def lastfm():
         
         ###Lastreq case, negates for a threshold
         #print text, lastreq, len(quotesfilter)
-        if(lastreq and (len(quotesfilter)<3)):
+        if((lastreq and (len(quotesfilter)<3)) or wantsmore>0):
             quotesfilter.insert(0,text)
         if(lastreq and wantsmore==0):
             reset(False,True)
