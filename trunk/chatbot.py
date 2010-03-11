@@ -54,7 +54,7 @@ file=open(filename,'w+')
 
 topic = [False, False]
 subTopic = [False, False,False,False,False,False,False,False]
-make = False
+make = [False]
 
 SONG = 0
 INFO = 1
@@ -92,7 +92,7 @@ def whatSubTopic(word):
     if isAlbum(word):
       subTopic[ALBUM] = True   
     if isMake(word):
-        make = True
+        make[0] = True
 
 #helper 
 def isBand(word):
@@ -141,7 +141,8 @@ def isSimilar(word):
 def isMake(word):
     for i in range(len(makeList)):
         if word.lower() == makeList[i]:
-            make = True
+            return(True)
+    return False
 
 def isNeg(word):
     for i in range(len(negAmb)):
@@ -156,10 +157,10 @@ def reset(Class,SubClass):
     if(SubClass):
         for i in range(len(subTopic)):
             subTopic[i]= False
-    make = False
+    make[0] = False
 
 
-def translateToLastFm (Name,Class,Subclass,By,more):
+def translateToLastFm (Name,Class,Subclass,By,howmanymore):
     try :
         subTopic[SIMILAR]
         if(By and Class[0] and Class[1]):
@@ -167,11 +168,11 @@ def translateToLastFm (Name,Class,Subclass,By,more):
             if(len(myArtist)>0):
                 top=myArtist[0].get_top_albums()
                 if(len(top)>0):
-                    return str(top[more][0])
+                    return str(top[howmanymore*3:(howmanymore+1)*3])
         elif((not By) and Class[0] and Class[1]):
             myAlbum=network.search_for_album(Name).get_next_page()
             if(len(myAlbum)>0):
-                return str(myAlbum[more])
+                return str("An artist is related to that term "+myAlbum[0].get_artist())
         if Class[0] :
             myArtist=network.search_for_artist(Name).get_next_page()[0]
             if  Subclass[CONCERT]:
@@ -181,15 +182,15 @@ def translateToLastFm (Name,Class,Subclass,By,more):
                 mye=allmye[0]
                 return str(str(myArtist)+" will play at venue#"+str(mye.get_venue().get_id())+" on "+mye.get_start_date()+" for " +str(mye))
             elif Subclass[SIMILAR]:
-                return str(myArtist.get_similar()[more][0])
+                return str(myArtist.get_similar()[howmanymore*3:(howmanymore+1)*3])
             elif Subclass[SONG]:
                 mysongs=myArtist.get_top_albums()
                 if(len(mysongs)!=0):
-                    return str(mysongs[more])
+                    return str(mysongs[howmanymore*3:(howmanymore+1)*3])
             elif Subclass[ALBUM]:
                 myalbums=myArtist.get_top_albums()
                 if(len(myalbums)!=0):
-                    return str(myalbums[more])
+                    return str(myalbums[howmanymore*3:(howmanymore+1)*3])
             elif Subclass[POPULARITY]:
                 return str(myArtist.get_playcount()) + " plays"
             elif Subclass[INFO]:
@@ -203,13 +204,19 @@ def translateToLastFm (Name,Class,Subclass,By,more):
             if Subclass[SONG]:
                 return str(myAlbum.get_tracks())
             elif Subclass[INFO]:
-                return myAlbum.get_wiki_summary()
+                try:
+                    return str(myAlbum.get_wiki_content())
+                except UnicodeEncodeError:
+                    return myAlbum.get_wiki_content()
                 #get_wiki_content()
             elif Subclass[POPULARITY]:
                 return str(myAlbum.get_playcount()) + " plays"
                 #get_listener_count()
             else :
-                return myAlbum.get_wiki_summary()
+                try:
+                    return str(myAlbum.get_wiki_summary())
+                except UnicodeEncodeError:
+                    return myAlbum.get_wiki_summary()
         if(not Class[1] and not Class[0]):
             sentence=raw_input("Is this a band or an album?\n");
             file.flush()
@@ -224,13 +231,11 @@ def translateToLastFm (Name,Class,Subclass,By,more):
             for word in sentence.split():
                 whatTopic(word)
                 
-            return( translateToLastFm (Name,Class,Subclass,By,more))
-                
-        return "fail"
-    except BaseException:
-        print "no results"
-        return "fail"
+            return( translateToLastFm (Name,Class,Subclass,By,howmanymore))
+    except IndexError:
+        return "No Results\n"
     return "fail"
+    
 
 #except BaseException :
 #    return "Fail"ArithmeticError
@@ -465,11 +470,13 @@ def lastfm():
                 text=item
             else :
                 text=text
-            info=translateToLastFm(text,topic,subTopic,make,wantsmore)
+            info=translateToLastFm(text,topic,subTopic,make[0],wantsmore)
             html=False
             if(info==types.NoneType):
                 continue
-            if(info=="fail"):
+            if(info=="None"):
+                info="No Info"
+            if(info=="fail" or info=="[]"):
                 print "fail"
                 file.write("fail\n")
                 file.flush()
@@ -485,11 +492,15 @@ def lastfm():
                     sys.stdout.write(letter)
                     file.write(letter)
                     file.flush()
+                except TypeError:
+                    print info
+                    file.write(info)
+                    file.flush()
                 except UnicodeEncodeError :
                     continue
             file.write("\n");
             file.flush()
-            print()
+            print ("")
             #info=re.sub("(\<[\w\s\'\"\:\;\,\.\?\/\=\+\-\_\@\!\#\$\%\^\&\*\(\)]*\>)*","",info)
             #print("\nI have found something pertaining to the entity "+item+"\n\n"+info+"\n")
             break
