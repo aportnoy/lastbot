@@ -181,6 +181,8 @@ def translateToLastFm (Name,Class,Subclass,By,howmanymore):
                     return("No Upcoming Events")
                 mye=allmye[0]
                 return str(str(myArtist)+" will play at venue#"+str(mye.get_venue().get_id())+" on "+mye.get_start_date()+" for " +str(mye))
+            elif Subclass[POPULARITY]:
+                return str(myArtist.get_playcount()) + " plays"
             elif Subclass[SIMILAR]:
                 return str(myArtist.get_similar()[howmanymore*3:(howmanymore+1)*3])
             elif Subclass[SONG]:
@@ -191,8 +193,6 @@ def translateToLastFm (Name,Class,Subclass,By,howmanymore):
                 myalbums=myArtist.get_top_albums()
                 if(len(myalbums)!=0):
                     return str(myalbums[howmanymore*3:(howmanymore+1)*3])
-            elif Subclass[POPULARITY]:
-                return str(myArtist.get_playcount()) + " plays"
             elif Subclass[INFO]:
                 return myArtist.get_bio_summary()
             else :
