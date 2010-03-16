@@ -481,6 +481,8 @@ def lastfm():
                 file.write("fail\n")
                 file.flush()
                 continue
+            if(str(type(info).__name__)=="NoneType"):
+                continue
             for letter in info :
                 if(letter==">"):
                     html=False
