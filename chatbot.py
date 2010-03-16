@@ -46,7 +46,7 @@ more = ["more","results","better"]
 
 negAmb = ["no","care","know","whatever","negative","none","not","way","impossible","neither","nor"]
 
-last = ["this","that","them","they","their","it","him","her","his","hers"]
+last = ["this","that","them","they","their","it","him","her","his","hers","she","he"]
 
 filename=re.sub("[^\w]","",str(time.clock()))+".log"
 file=open(filename,'w+')
@@ -180,7 +180,7 @@ def translateToLastFm (Name,Class,Subclass,By,howmanymore):
                 if(len(allmye)==0):
                     return("No Upcoming Events")
                 mye=allmye[0]
-                return str(str(myArtist)+" will play at venue#"+str(mye.get_venue().get_id())+" on "+mye.get_start_date()+" for " +str(mye))
+                return str(str(myArtist)+" will play at venue#"+str(mye.get_venue().get_id())+" on "+mye.get_start_date()+" for " +str(mye.get_title()))
             elif Subclass[POPULARITY]:
                 return str(myArtist.get_playcount()) + " plays"
             elif Subclass[SIMILAR]:
